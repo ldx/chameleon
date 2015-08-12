@@ -805,7 +805,7 @@ int getBootOptions(bool firstRun)
 	// getBootVolumeRef(), so loading the config file from boot.c:408 has
 	// probably failed. This will now succeed if the config file is present on
 	// the boot volume.
-	loadChameleonConfig(&bootInfo->chameleonConfig);
+	loadChameleonConfig(&bootInfo->chameleonConfig, NULL);
 
 	if (biosDevIsCDROM(gBIOSDev)) {
 		isCDROM = true;
