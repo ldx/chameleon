@@ -20,13 +20,13 @@
 #include "dram_controllers.h"
 
 #ifndef DEBUG_DRAM
-#define DEBUG_DRAM 0
+	#define DEBUG_DRAM 0
 #endif
 
 #if DEBUG_DRAM
-#define DBG(x...) printf(x)
+	#define DBG(x...) printf(x)
 #else
-#define DBG(x...)
+	#define DBG(x...)
 #endif
 
 /*
@@ -490,27 +490,6 @@ static struct mem_controller_t dram_controllers[] = {
 	{ 0, 0, "",					NULL, NULL, NULL },
 
 	// Intel
-//	{ 0x8086, 0x0100, "2rd Gen Core processor",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0104, "2rd Gen Core processor",	NULL, NULL, NULL },
-//	{ 0x8086, 0x010C, "Xeon E3-1200/2rd Gen Core processor",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0150, "Xeon E3-1200 v2/3rd Gen Core processor",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0154, "3rd Gen Core processor",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0158, "Xeon E3-1200 v2/Ivy Bridge",	NULL, NULL, NULL },
-//	{ 0x8086, 0x015C, "Xeon E3-1200 v2/3rd Gen Core processor",	NULL, NULL, NULL },
-
-//	{ 0x8086, 0x0BF0, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF1, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF2, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF3, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF4, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF5, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF6, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-//	{ 0x8086, 0x0BF7, "Atom Processor D2xxx/N2xxx",	NULL, NULL, NULL },
-
-//	{ 0x8086, 0x0C00, "Haswell",			NULL, NULL, NULL },
-//	{ 0x8086, 0x0C04, "Haswell",			NULL, NULL, NULL },
-//	{ 0x8086, 0x0C08, "Haswell",			NULL, NULL, NULL },
-
 	{ 0x8086, 0x7190, "VMWare",			NULL, NULL, NULL },
 
 	{ 0x8086, 0x1A30, "82845 845 [Brookdale]",	NULL, NULL, NULL },
@@ -540,10 +519,10 @@ static struct mem_controller_t dram_controllers[] = {
 	{ 0x8086, 0x3401, "5520/5500/X58",		setup_nhm, get_fsb_nhm,		get_timings_nhm		},
 	{ 0x8086, 0x3402, "5520/5500/X58",		setup_nhm, get_fsb_nhm,		get_timings_nhm		},
 	{ 0x8086, 0x3403, "5500",			setup_nhm, get_fsb_nhm,		get_timings_nhm		},
-	{ 0x8086, 0x3404, "5520/5500/X58",		setup_nhm, get_fsb_nhm,		get_timings_nhm		},
-	{ 0x8086, 0x3405, "5520/5500/X58",		setup_nhm, get_fsb_nhm,		get_timings_nhm		},
+	{ 0x8086, 0x3404, "X58",			setup_nhm, get_fsb_nhm,		get_timings_nhm		},
+	{ 0x8086, 0x3405, "X58",			setup_nhm, get_fsb_nhm,		get_timings_nhm		},
 	{ 0x8086, 0x3406, "5520",			setup_nhm, get_fsb_nhm,		get_timings_nhm		},
-	{ 0x8086, 0x3407, "5520/5500/X58",		setup_nhm, get_fsb_nhm,		get_timings_nhm		},
+	{ 0x8086, 0x3407, "X58",			setup_nhm, get_fsb_nhm,		get_timings_nhm		},
 };
 
 static const char *memory_channel_types[] =
@@ -553,11 +532,12 @@ static const char *memory_channel_types[] =
 
 void scan_dram_controller(pci_dt_t *dram_dev)
 {
+	verbose("[ DRAM CONTROLLER ]\n");
 	int i;
 	for(i = 1; i < sizeof(dram_controllers) / sizeof(dram_controllers[0]); i++)
 	{
 		if ((dram_controllers[i].vendor == dram_dev->vendor_id) && (dram_controllers[i].device == dram_dev->device_id)) {
-			verbose("%s%s DRAM Controller [%4x:%4x] at %02x:%02x.%x\n", 
+			verbose("\t%s%s DRAM Controller [%4x:%4x] at %02x:%02x.%x\n", 
 				(dram_dev->vendor_id == 0x8086) ? "Intel " : "" ,
 				dram_controllers[i].name, dram_dev->vendor_id, dram_dev->device_id,
 				dram_dev->dev.bits.bus, dram_dev->dev.bits.dev, dram_dev->dev.bits.func);
@@ -574,7 +554,7 @@ void scan_dram_controller(pci_dt_t *dram_dev)
 				dram_controllers[i].poll_speed(dram_dev);
 			}
 
-			verbose("Frequency detected: %d MHz (%d) %s Channel \n\tCAS:%d tRC:%d tRP:%d RAS:%d (%d-%d-%d-%d)\n", 
+			verbose("\tFrequency detected: %d MHz (%d) %s Channel \n\t\tCAS:%d tRC:%d tRP:%d RAS:%d (%d-%d-%d-%d)\n", 
 				(uint32_t)Platform.RAM.Frequency / 1000000,
 				(uint32_t)Platform.RAM.Frequency / 500000,
 				memory_channel_types[Platform.RAM.Channels]
@@ -583,4 +563,5 @@ void scan_dram_controller(pci_dt_t *dram_dev)
 //			getchar();
 		}
 	}
+	verbose("\n");
 }

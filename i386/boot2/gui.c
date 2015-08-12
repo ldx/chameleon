@@ -54,8 +54,8 @@ enum {
 	iDeviceGeneric_o,
 	iDeviceHFS,
 	iDeviceHFS_o,
-//	iDeviceHFS_gala,
-//	iDeviceHFS_gala_o,
+	iDeviceHFS_cap,
+	iDeviceHFS_cap_o,
 	iDeviceHFS_yos,
 	iDeviceHFS_yos_o,
 	iDeviceHFS_mav,
@@ -73,8 +73,8 @@ enum {
 
 	iDeviceHFSRAID,
 	iDeviceHFSRAID_o,
-//	iDeviceHFSRAID_gala,
-//	iDeviceHFSRAID_gala_o,
+	iDeviceHFSRAID_cap,
+	iDeviceHFSRAID_cap_o,
 	iDeviceHFSRAID_yos,
 	iDeviceHFSRAID_yos_o,
 	iDeviceHFSRAID_mav,
@@ -148,8 +148,8 @@ image_t images[] = {
 	{.name = "device_generic_o",            .image = NULL},
 	{.name = "device_hfsplus",              .image = NULL},
 	{.name = "device_hfsplus_o",            .image = NULL},
-//	{.name = "device_hfsplus_gala",         .image = NULL},
-//	{.name = "device_hfsplus_gala_o",       .image = NULL},
+	{.name = "device_hfsplus_cap",          .image = NULL},
+	{.name = "device_hfsplus_cap_o",        .image = NULL},
 	{.name = "device_hfsplus_yos",          .image = NULL},
 	{.name = "device_hfsplus_yos_o",        .image = NULL},
 	{.name = "device_hfsplus_mav",          .image = NULL},
@@ -167,8 +167,8 @@ image_t images[] = {
 
 	{.name = "device_hfsraid",              .image = NULL},
 	{.name = "device_hfsraid_o",            .image = NULL},
-//	{.name = "device_hfsraid_gala",         .image = NULL},
-//	{.name = "device_hfsraid_gala_o",       .image = NULL},
+	{.name = "device_hfsraid_cap",          .image = NULL},
+	{.name = "device_hfsraid_cap_o",        .image = NULL},
 	{.name = "device_hfsraid_yos",          .image = NULL},
 	{.name = "device_hfsraid_yos_o",        .image = NULL},
 	{.name = "device_hfsraid_mav",          .image = NULL},
@@ -394,8 +394,8 @@ static int loadGraphics(void)
 	LOADPNG(device_generic_o,               iDeviceGeneric);
 	LOADPNG(device_hfsplus,                 iDeviceGeneric);
 	LOADPNG(device_hfsplus_o,               iDeviceHFS);
-//	LOADPNG(device_hfsplus_gala,            iDeviceHFS);
-//	LOADPNG(device_hfsplus_gala_o,          iDeviceHFS_gala);
+	LOADPNG(device_hfsplus_cap,             iDeviceHFS);
+	LOADPNG(device_hfsplus_cap_o,           iDeviceHFS_cap);
 	LOADPNG(device_hfsplus_yos,             iDeviceHFS);
 	LOADPNG(device_hfsplus_yos_o,           iDeviceHFS_yos);
 	LOADPNG(device_hfsplus_mav,             iDeviceHFS);
@@ -413,8 +413,8 @@ static int loadGraphics(void)
 
 	LOADPNG(device_hfsraid,                 iDeviceHFS);
 	LOADPNG(device_hfsraid_o,               iDeviceHFSRAID);
-//	LOADPNG(device_hfsraid_gala,            iDeviceHFSRAID);
-//	LOADPNG(device_hfsraid_gala_o,          iDeviceHFSRAID_gala);
+	LOADPNG(device_hfsraid_cap,             iDeviceHFSRAID);
+	LOADPNG(device_hfsraid_cap_o,           iDeviceHFSRAID_cap);
 	LOADPNG(device_hfsraid_yos,             iDeviceHFSRAID);
 	LOADPNG(device_hfsraid_yos_o,           iDeviceHFSRAID_yos);
 	LOADPNG(device_hfsraid_mav,             iDeviceHFSRAID);
@@ -1078,13 +1078,13 @@ void drawDeviceIcon(BVRef device, pixmap_t *buffer, position_t p, bool isSelecte
 							break;
 						case '1':
 							if (device->OSVersion[4] == '0') { // 10.10
-								devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID_yos : iDeviceHFS_yos);
+								devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID_yos : iDeviceHFS_yos); // Yosemite
 								break;
 							}
-							//if (device->OSVersion[4] == '1') { // 10.11
-							//	devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID_??? : iDeviceHFS_???);
-							//	break;
-							//}
+							if (device->OSVersion[4] == '1') { // 10.11
+								devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID_cap : iDeviceHFS_cap); // El Capitan
+								break;
+							}
 						default:
 							devicetype = (device->flags & kBVFlagBooter ? iDeviceHFSRAID : iDeviceHFS);
 							break;
@@ -1303,8 +1303,7 @@ void updateGraphicBootPrompt()
 
 // ====================================================================
 
-static inline
-void vramwrite (void *data, int width, int height)
+static inline void vramwrite (void *data, int width, int height)
 {
 	if (VIDEO (depth) == 32 && VIDEO (rowBytes) == gui.backbuffer->width * 4)
 	{
@@ -1384,14 +1383,13 @@ void updateVRAM()
 
 struct putc_info //Azi: exists on console.c & printf.c
 {
-	char * str;
-	char * last_str;
+	char *str;
+	char *last_str;
 };
 
 // ====================================================================
 
-static int
-sputc(int c, struct putc_info * pi) //Azi: same as above
+static int sputc(int c, struct putc_info * pi) //Azi: same as above
 {
 	if (pi->last_str)
 	{
@@ -2294,9 +2292,9 @@ int updateInfoMenu(int key)
 
 // ====================================================================
 
-uint16_t bootImageWidth = 0; 
-uint16_t bootImageHeight = 0; 
-uint8_t *bootImageData = NULL; 
+uint16_t bootImageWidth = 0;
+uint16_t bootImageHeight = 0;
+uint8_t *bootImageData = NULL;
 static bool usePngImage = true;
 
 //==========================================================================
@@ -2331,24 +2329,37 @@ void drawBootGraphics(void)
 	int length;
 	const char *dummyVal;
 	int oldScreenWidth, oldScreenHeight;
-	bool legacy_logo;
-	uint16_t x, y; 
-	
-	if (getBoolForKey("Legacy Logo", &legacy_logo, &bootInfo->chameleonConfig) && legacy_logo) {
+	bool legacy_logo = true; // ErmaC: Legacy Logo is enabled by default
+
+	uint16_t x, y;
+
+	getBoolForKey("Legacy Logo", &legacy_logo, &bootInfo->chameleonConfig);
+
+	if ( legacy_logo )
+	{
 		usePngImage = false; 
-	} else if (bootImageData == NULL) {
+	}
+	else if (bootImageData == NULL)
+	{
 		loadBootGraphics();
 	}
 
 	// parse screen size parameters
-	if (getIntForKey("boot_width", &pos, &bootInfo->themeConfig) && pos > 0) {
+	if (getIntForKey("boot_width", &pos, &bootInfo->themeConfig) && pos > 0)
+	{
 		screen_params[0] = pos;
-	} else {
+	}
+	else
+	{
 		screen_params[0] = DEFAULT_SCREEN_WIDTH;
 	}
-	if (getIntForKey("boot_height", &pos, &bootInfo->themeConfig) && pos > 0) {
+
+	if (getIntForKey("boot_height", &pos, &bootInfo->themeConfig) && pos > 0)
+	{
 		screen_params[1] = pos;
-	} else {
+	}
+	else
+	{
 		screen_params[1] = DEFAULT_SCREEN_HEIGHT;
 	}
 
@@ -2363,40 +2374,50 @@ void drawBootGraphics(void)
 	getGraphicModeParams(screen_params);
 
 	// Set graphics mode if the booter was in text mode or the screen resolution has changed.
-	if (bootArgs->Video.v_display == VGA_TEXT_MODE || (screen_params[0] != oldScreenWidth && screen_params[1] != oldScreenHeight) ) {
+	if (bootArgs->Video.v_display == VGA_TEXT_MODE || (screen_params[0] != oldScreenWidth && screen_params[1] != oldScreenHeight) )
+	{
 		setVideoMode(GRAPHICS_MODE, 0);
 	}
 
-	if (getValueForKey("-checkers", &dummyVal, &length, &bootInfo->chameleonConfig)) {
+	if (getValueForKey("-checkers", &dummyVal, &length, &bootInfo->chameleonConfig))
+	{
 		drawCheckerBoard();
-	} else {
-		// Fill the background to 75% grey (same as BootX). 
-		drawColorRectangle(0, 0, screen_params[0], screen_params[1], 0x01); 
 	}
-	if ((bootImageData) && (usePngImage)) { 
+	else
+	{
+		// Fill the background to 75% grey (same as BootX).
+		drawColorRectangle(0, 0, screen_params[0], screen_params[1], 0x01);
+	}
+
+	if ((bootImageData) && (usePngImage))
+	{
 		x = (screen_params[0] - MIN(bootImageWidth, screen_params[0])) / 2; 
 		y = (screen_params[1] - MIN(bootImageHeight, screen_params[1])) / 2; 
 
 		// Draw the image in the center of the display. 
 		blendImage(x, y, bootImageWidth, bootImageHeight, bootImageData); 
-	} else { 
-		uint8_t *appleBootPict; 
-		bootImageData = NULL; 
-		bootImageWidth = kAppleBootWidth; 
-		bootImageHeight = kAppleBootHeight; 
+	}
+	else
+	{
+		uint8_t *appleBootPict;
+		bootImageData = NULL;
+		bootImageWidth = kAppleBootWidth;
+		bootImageHeight = kAppleBootHeight;
 
-		// Prepare the data for the default Apple boot image. 
-		appleBootPict = (uint8_t *) decodeRLE(gAppleBootPictRLE, kAppleBootRLEBlocks, bootImageWidth * bootImageHeight); 
-		if (appleBootPict) { 
-			convertImage(bootImageWidth, bootImageHeight, appleBootPict, &bootImageData); 
-			if (bootImageData) {	
-				x = (screen_params[0] - MIN(kAppleBootWidth, screen_params[0])) / 2; 
-				y = (screen_params[1] - MIN(kAppleBootHeight, screen_params[1])) / 2; 
+		// Prepare the data for the default Apple boot image.
+		appleBootPict = (uint8_t *) decodeRLE(gAppleBootPictRLE, kAppleBootRLEBlocks, bootImageWidth * bootImageHeight);
+		if (appleBootPict)
+		{
+			convertImage(bootImageWidth, bootImageHeight, appleBootPict, &bootImageData);
+			if (bootImageData)
+			{
+				x = (screen_params[0] - MIN(kAppleBootWidth, screen_params[0])) / 2;
+				y = (screen_params[1] - MIN(kAppleBootHeight, screen_params[1])) / 2;
 				drawDataRectangle(x, y, kAppleBootWidth, kAppleBootHeight, bootImageData);
 				free(bootImageData);
 			}
-			free(appleBootPict); 
-		} 
+			free(appleBootPict);
+		}
 	}
 }
 // ====================================================================

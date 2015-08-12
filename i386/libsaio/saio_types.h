@@ -34,9 +34,9 @@
 #include "bootargs.h"
 
 #if DEBUG
-#define DEBUG_DISK(x)    printf x
+	#define DEBUG_DISK(x)    printf x
 #else
-#define DEBUG_DISK(x)
+	#define DEBUG_DISK(x)
 #endif
 
 typedef unsigned long entry_t;
@@ -57,21 +57,22 @@ struct driveParameters
 	int totalDrives;
 };
 
-struct Tag {
+typedef struct Tag
+{
 	long		type;
 	char	   *string;
 	long		offset;
 	struct Tag *tag;
 	struct Tag *tagNext;
-};
-typedef struct Tag Tag, *TagPtr;
+} Tag, *TagPtr;
 
 /*
  * Max size fo config data array, in bytes.
  */
 #define IO_CONFIG_DATA_SIZE		40960 // was 4096 // was 163840
 
-typedef struct {
+typedef struct
+{
 	char	plist[IO_CONFIG_DATA_SIZE];	// buffer for plist
 	TagPtr	dictionary;			// buffer for xml dictionary
 	bool	canOverride;			// flag to mark a dictionary can be overriden
@@ -80,7 +81,7 @@ typedef struct {
 /*
  * BIOS drive information.
  */
-struct boot_drive_info
+typedef struct boot_drive_info
 {
 	struct drive_params
 	{
@@ -103,7 +104,7 @@ struct boot_drive_info
 		unsigned char  dev_path[16];
 		unsigned char  reserved3;
 		unsigned char  checksum;
-	} params;
+	} params __attribute__((packed));
 
 	struct drive_dpte
 	{
@@ -122,9 +123,8 @@ struct boot_drive_info
 		unsigned short reserved;
 		unsigned char  revision;
 		unsigned char  checksum;
-    } dpte;
-} __attribute__((packed));
-typedef struct boot_drive_info boot_drive_info_t;
+    } dpte __attribute__((packed));
+} __attribute__((packed)) boot_drive_info_t;
 
 
 struct driveInfo
@@ -218,6 +218,7 @@ struct BootVolume {
 
 enum
 {
+	kBVFlagZero			= 0x00,
 	kBVFlagPrimary			= 0x01,
 	kBVFlagNativeBoot		= 0x02,
 	kBVFlagForeignBoot		= 0x04,

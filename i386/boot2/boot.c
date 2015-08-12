@@ -105,7 +105,7 @@ static unsigned long	Adler32(unsigned char *buffer, long length);
 //static void			selectBiosDevice(void);
 
 /** options.c **/
-extern char* msgbuf;
+extern char *msgbuf;
 void showTextBuffer(char *buf, int size);
 
 //==========================================================================
@@ -236,9 +236,9 @@ static int ExecKernel(void *binary)
 	if ( TIGER || LEOPARD || SNOW_LEOPARD )
 	{
 		// Notify modules that the kernel is about to be started
-		execute_hook("Kernel Start", (void *)kernelEntry, (void *)bootArgsPreLion, NULL, NULL);
+		execute_hook("Kernel Start", (void *)kernelEntry, (void *)bootArgsLegacy, NULL, NULL);
 
-		startprog( kernelEntry, bootArgsPreLion );
+		startprog( kernelEntry, bootArgsLegacy );
 	}
 	else
 	{
@@ -316,16 +316,16 @@ long LoadKernelCache(const char *cacheFile, void **binary)
 						prev_time = time;
 					}
 				}
-				verbose("Kernel Cache file path (Mac OS X 10.6.X): %s\n", kernelCacheFile);
+				verbose("Kernel Cache file path (Mac OS X 10.6.X): %s\n", kernelCachePath);
 			}
 			closedir(cacheDir);
 		}
 		else
 		{
-			// Lion, Mountain Lion, Mavericks and Yosemite prelink kernel cache file
+			// Lion, Mountain Lion, Mavericks, Yosemite and El Capitan prelink kernel cache file
 			// for 10.7 10.8 10.9 10.10 10.11
 			snprintf(kernelCacheFile, sizeof(kernelCacheFile), "%skernelcache", kDefaultCachePathSnow);
-			verbose("Kernel Cache file path (Mac OS X 10.7 and newer): %s\n", kernelCacheFile);
+			verbose("Kernel Cache file path (Mac OS X 10.7 and newer): %s\n", kernelCachePath);
 
 		}
 	}
@@ -644,7 +644,8 @@ void common_boot(int biosdev)
 			}
 		}
 
-		if (getValueForKey(kKernelArchKey, &val, &len, &bootInfo->chameleonConfig)) {
+		if (getValueForKey(kKernelArchKey, &val, &len, &bootInfo->chameleonConfig))
+		{
 			if (strncmp(val, "i386", sizeof("i386") ) == 0)
 			{
 				archCpuType = CPU_TYPE_I386;
@@ -770,18 +771,20 @@ void common_boot(int biosdev)
 			if (strncmp(bootInfo->bootFile, "bt(", sizeof("bt(") ) == 0 ||
 				strncmp(bootInfo->bootFile, "hd(", sizeof("hd(") ) == 0 ||
 				strncmp(bootInfo->bootFile, "rd(", sizeof("rd(") ) == 0)
+			{
 				bootFileWithDevice = true;
+			}
 
 			// bootFile must start with a / if it not start with a device name
 			if (!bootFileWithDevice && (bootInfo->bootFile)[0] != '/')
 			{
-				if ( !YOSEMITE ) // ( !YOSEMITE || !GALA ) Is not Yosemite 10.10 or Gala 10.11
+				if ( !YOSEMITE || !ELCAPITAN ) //Is not Yosemite 10.10 or El Capitan 10.11
 				{
 					snprintf(bootFile, sizeof(bootFile), "/%s", bootInfo->bootFile); // append a leading /
 				}
 				else
 				{
-					snprintf(bootFile, sizeof(bootFile), kDefaultKernelPathForYos"%s", bootInfo->bootFile); // Yosemite
+					snprintf(bootFile, sizeof(bootFile), kDefaultKernelPathForYos"%s", bootInfo->bootFile); // Yosemite or El Capitan
 				}
 			}
 			else

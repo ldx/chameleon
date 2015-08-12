@@ -660,7 +660,7 @@ static int updateMenu( int key, void ** paramPtr )
 
 static void skipblanks( const char ** cpp ) 
 {
-    while ( **(cpp) == ' ' || **(cpp) == '\t' ) ++(*cpp);
+	while (**(cpp) == ' ' || **(cpp) == '\t' ) ++(*cpp);
 }
 
 //==========================================================================
@@ -1178,14 +1178,16 @@ int getBootOptions(bool firstRun)
 	} while (0 == key);
 
 done:
-	if (bootArgs->Video.v_display == VGA_TEXT_MODE) {
+	if (bootArgs->Video.v_display == VGA_TEXT_MODE)
+	{
 		clearScreenRows(kMenuTopRow, kScreenLastRow);
 		changeCursor(0, kMenuTopRow, kCursorTypeUnderline, 0);
 	}
 
 	shouldboot = false;
 	gui.menu.draw = false;
-	if (menuItems) {
+	if (menuItems)
+	{
 		free(menuItems);
 		menuItems = NULL;
 	}
@@ -1204,11 +1206,6 @@ bool copyArgument(const char *argName, const char *val, int cnt, char **argP, in
 	int argLen = argName ? strlen(argName) : 0;
 	int len = argLen + cnt + 1;  // +1 to account for space
 
-	if (argName)
-	{
-		len++; // +1 to account for '='
-	}
-
 	if (len > *cntRemainingP)
 	{
 		error("Warning: boot arguments too long, truncating\n");
@@ -1221,6 +1218,7 @@ bool copyArgument(const char *argName, const char *val, int cnt, char **argP, in
 		*argP += argLen;
 		*argP[0] = '=';
 		(*argP)++;
+		len++; // +1 to account for '='
 	}
 
 	strncpy(*argP, val, cnt);
@@ -1235,8 +1233,7 @@ bool copyArgument(const char *argName, const char *val, int cnt, char **argP, in
 
 // 
 // Returns TRUE if an argument was copied, FALSE otherwise
-bool
-processBootArgument(
+bool processBootArgument(
                     const char *argName,      // The argument to search for
                     const char *userString,   // Typed-in boot arguments
                     const char *kernelFlags,  // Kernel flags from config table
@@ -1245,22 +1242,29 @@ processBootArgument(
                     int *cntRemainingP,         // Output count
                     char *foundVal,             // found value
                     int  foundValSize           // max found value size
-                    ) {
+                    )
+{
 	const char *val;
 	int cnt;
 	bool found = false;
 
-	if (getValueForBootKey(userString, argName, &val, &cnt)) {
+	if (getValueForBootKey(userString, argName, &val, &cnt))
+	{
 		// Don't copy; these values will be copied at the end of argument processing.
 		found = true;
-	} else if (getValueForBootKey(kernelFlags, argName, &val, &cnt)) {
+	}
+	else if (getValueForBootKey(kernelFlags, argName, &val, &cnt))
+	{
 		// Don't copy; these values will be copied at the end of argument processing.
 		found = true;
-	} else if (getValueForKey(argName, &val, &cnt, &bootInfo->chameleonConfig)) {
+	}
+	else if (getValueForKey(argName, &val, &cnt, &bootInfo->chameleonConfig))
+	{
 		copyArgument(argName, val, cnt, argP, cntRemainingP);
 		found = true;
 	}
-	if (found && foundVal) {
+	if (found && foundVal)
+	{
 		strlcpy(foundVal, val, foundValSize);
 	}
 	return found;
@@ -1282,7 +1286,7 @@ int processBootOptions()
 	char		*valueBuffer;
 
 	valueBuffer = malloc(VALUE_SIZE);
-    
+
 	skipblanks( &cp );
 
 	// Update the unit and partition number.
@@ -1316,7 +1320,7 @@ int processBootOptions()
 	MacOSVerCurrent = MacOSVer2Int(gBootVolume->OSVersion);
 	// so copy it and trim
 	gMacOSVersion[0] = 0;
-	if (MacOSVerCurrent >= MacOSVer2Int("10.10"))
+	if ( MacOSVerCurrent >= MacOSVer2Int("10.10") )
 	{
 		strncat(gMacOSVersion, gBootVolume->OSVersion, 5);
 	}
@@ -1327,17 +1331,25 @@ int processBootOptions()
 
 	// Load config table specified by the user, or use the default.
 
-	if (!getValueForBootKey(cp, "config", &val, &cnt))
+	if (getValueForBootKey(cp, "config", &val, &cnt))
 	{
-		val = 0;
-		cnt = 0;
+		printf("Load config table specified by the user.\n");
+		printf(val);
+		printf("\n");
+		pause();
+		loadConfigFile(val,&bootInfo->chameleonConfig);
+
+		loadSystemConfig(&bootInfo->bootConfig);
 	}
+	else
+	{
 
-	// Load com.apple.Boot.plist from the selected volume
-	// and use its contents to override default bootConfig.
+		// Load org.chameleon.Boot.plist from the selected volume
+		// and use its contents to override default bootConfig.
 
-	loadSystemConfig(&bootInfo->bootConfig);
-	loadChameleonConfig(&bootInfo->chameleonConfig, NULL);
+		loadSystemConfig(&bootInfo->bootConfig);
+		loadChameleonConfig(&bootInfo->chameleonConfig, NULL);
+	}
 
 	// Use the kernel name specified by the user, or fetch the name
 	// in the config table, or use the default if not specified.
@@ -1359,7 +1371,7 @@ int processBootOptions()
 		}
 		else
 		{
-			if (MacOSVerCurrent >= MacOSVer2Int("10.10")) // OS X is 10.10 or newer
+			if ( MacOSVerCurrent >= MacOSVer2Int("10.10") ) // OS X is 10.10 or newer
 			{
 				strlcpy( bootInfo->bootFile, kOSXKernel, sizeof(bootInfo->bootFile) );
 			}
@@ -1377,7 +1389,7 @@ int processBootOptions()
 	}
 
 	// Ermac : Inject "kext-dev-mode=1" if OS X 10.10 is detected
-	if (MacOSVerCurrent >= MacOSVer2Int("10.10")) // OS X is 10.10 or newer
+	if ( MacOSVerCurrent == MacOSVer2Int("10.10") ) // OS X is 10.10
 	{
 		addBootArg("kext-dev-mode=1");
 	}
